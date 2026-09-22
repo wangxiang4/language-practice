@@ -33,6 +33,13 @@ body{
   margin-bottom:44px;
 }
 main{max-width:620px;margin:0 auto;padding:52px 20px 80px}
+.home{
+  display:inline-block; padding:4px 0; margin-bottom:24px;
+  font-family:var(--ui); font-size:12px; letter-spacing:.03em;
+  color:var(--soft); text-decoration:none;
+  transition:color .15s;
+}
+.home:hover,.home:focus{color:var(--pen)}
 .sec{
   font-family:var(--ui); font-size:11px; font-weight:600;
   letter-spacing:.13em; text-transform:uppercase; color:var(--soft);
@@ -78,6 +85,7 @@ main{max-width:620px;margin:0 auto;padding:52px 20px 80px}
 </head>
 <body>
 <main id="m">
+<a class="home" href="/">← Home</a>
 <img class="poster" src="poster-en.webp" width="1254" height="1254" alt="Everyday Life Conversation">
 </main>
 <script>
