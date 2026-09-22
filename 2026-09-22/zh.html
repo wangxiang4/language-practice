@@ -27,6 +27,11 @@ body{
   font-family:var(--ui); font-size:19px;
   -webkit-font-smoothing:antialiased;
 }
+.poster{
+  display:block; width:100%; height:auto;
+  border:1px solid var(--line);
+  margin-bottom:44px;
+}
 main{max-width:620px;margin:0 auto;padding:52px 20px 80px}
 .sec{
   font-family:var(--ui); font-size:11px; font-weight:600;
@@ -72,7 +77,9 @@ main{max-width:620px;margin:0 auto;padding:52px 20px 80px}
 </style>
 </head>
 <body>
-<main id="m"></main>
+<main id="m">
+<img class="poster" src="poster-zh.webp" width="1254" height="1254" alt="日常生活对话">
+</main>
 <script>
 const LINES = [
   ["#", "求人 / 要东西"],
