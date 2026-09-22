@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Language Practice</title>
+<style>
+:root{
+  --paper:#FCF8EE; --ink:#4F4545; --soft:#8E8181; --line:#E6DCCB;
+  --pen:#0096BE; --pen-line:#A5DCEA;
+  --ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#2B2424; --ink:#EDE3D4; --soft:#9A8B8B; --line:#3D3434;
+    --pen:#54C3E4; --pen-line:#37667A;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--ui); font-size:19px;
+  -webkit-font-smoothing:antialiased;
+}
+main{max-width:620px;margin:0 auto;padding:52px 20px 80px}
+.sec{
+  font-size:11px; font-weight:600; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--soft);
+  border-top:1px solid var(--line); padding-top:15px; margin:46px 0 26px;
+}
+.sec:first-child{border-top:0;padding-top:0;margin-top:0}
+.row{margin-bottom:28px}
+a.card{
+  display:block; text-decoration:none; color:inherit;
+  border-bottom:2px solid var(--pen-line);
+  padding:2px 0 8px; transition:border-color .2s,color .2s;
+}
+a.card:hover,a.card:focus{border-color:var(--pen);color:var(--pen)}
+a.card .t{line-height:1.6}
+a.card .h{font-size:12px; color:var(--soft); letter-spacing:.03em; margin-top:2px}
+a.card:hover .h,a.card:focus .h{color:var(--pen)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="sec">2026-09-22</div>
+
+  <div class="row">
+    <a class="card" href="/2026-09-22/en">
+      <div class="t">Everyday Life Conversation</div>
+      <div class="h">English · 16 frames</div>
+    </a>
+  </div>
+
+  <div class="row">
+    <a class="card" href="/2026-09-22/zh">
+      <div class="t">日常生活对话</div>
+      <div class="h">中文 · 17 条骨架</div>
+    </a>
+  </div>
+</main>
+</body>
+</html>
