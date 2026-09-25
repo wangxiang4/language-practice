@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telling Stories</title>
+<style>
+:root{
+  --paper:#FCF8EE; --ink:#4F4545; --soft:#8E8181; --line:#E6DCCB;
+  --pen:#0096BE; --pen-line:#A5DCEA; --pen-wash:#FFFABE;
+  --ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",Arial,sans-serif;
+  
+  
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#2B2424; --ink:#EDE3D4; --soft:#9A8B8B; --line:#3D3434;
+    --pen:#54C3E4; --pen-line:#37667A; --pen-wash:#4A4526;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--ui); font-size:19px;
+  -webkit-font-smoothing:antialiased;
+}
+.poster{
+  display:block; width:100%; height:auto;
+  border:1px solid var(--line);
+  margin-bottom:44px;
+}
+main{max-width:620px;margin:0 auto;padding:52px 20px 80px}
+.home{
+  display:inline-block; padding:4px 0; margin-bottom:24px;
+  font-family:var(--ui); font-size:12px; letter-spacing:.03em;
+  color:var(--soft); text-decoration:none;
+  transition:color .15s;
+}
+.home:hover,.home:focus{color:var(--pen)}
+.sec{
+  font-family:var(--ui); font-size:11px; font-weight:600;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--soft);
+  border-top:1px solid var(--line); padding-top:15px; margin:46px 0 26px;
+}
+.sec:first-child{border-top:0;padding-top:0;margin-top:0}
+.row{margin-bottom:28px}
+.f{line-height:2.1}
+.h{
+  font-family:var(--ui); font-size:12px; color:var(--soft);
+  letter-spacing:.03em; margin-top:2px;
+}
+.b{
+  display:inline-block; min-width:5em;
+  font-weight:500; line-height:1.25;
+  color:var(--pen); border-bottom:2px solid var(--pen-line); border-radius:4px;
+  padding:0 .3em; margin:0 .1em;
+  vertical-align:baseline; white-space:pre-wrap; word-break:break-word;
+  outline:none; border-radius:3px 3px 0 0;
+  transition:background .15s,border-color .15s;
+}
+.b.has{background:var(--pen-wash)}
+.b:focus{background:var(--pen-wash);border-bottom-color:var(--pen)}
+.b:empty::before{content:"\2007\2007\2007\2007"}
+.b:focus-visible{outline:none}
+.f + .f{margin-top:4px}
+.add{
+  font-family:var(--ui); font-size:12px; letter-spacing:.03em;
+  color:var(--soft); background:none; border:none; cursor:pointer;
+  padding:3px 0; margin-top:4px;
+}
+.add:hover{color:var(--pen)}
+.del{
+  font-family:var(--ui); font-size:14px; line-height:1;
+  color:var(--soft); background:none; border:none; cursor:pointer;
+  opacity:0; padding:0 4px; margin-left:4px;
+  transition:opacity .15s,color .15s;
+}
+.f:hover .del{opacity:.55}
+.del:hover{opacity:1;color:var(--pen)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main id="m">
+<a class="home" href="/">← Home</a>
+<img class="poster" src="poster-en.webp" width="1254" height="1254" alt="Telling Stories">
+</main>
+<script>
+const LINES = [
+  ["#", "START THE STORY"],
+  ["Guess what happened to me ___ !", "when"],
+  ["At first, I thought ___ .",       "what you thought"],
+
+  ["#", "KEEP IT GOING"],
+  ["Suddenly, ___ .",           "what happened"],
+  ["It turned out to be ___ !", "the surprise"],
+  ["The funny part is, ___ !",  "the funny thing"],
+  ["Long story short, ___ .",   "what happened"],
+
+  ["#", "FINISH IT"],
+  ["In the end, ___ .", "how it ended"],
+  ["Luckily, ___ .",    "the good part"],
+
+  ["#", "STORY WORDS"],
+  ["So, anyway...",           ""],
+  ["Where was I?",            ""],
+  ["After that...",           ""],
+  ["To make things worse...", ""],
+  ["True story!",             ""],
+
+  ["#", "LISTEN AND REACT"],
+  ["What? Tell me!",        ""],
+  ["What a small world!",   ""],
+  ["Phew! That was close.", ""]
+];
+
+const KEY = "2026-11-28.en";
+let saved = {}, counts = {};
+try{ saved  = JSON.parse(localStorage.getItem(KEY) || "{}"); }catch(e){}
+try{ counts = JSON.parse(localStorage.getItem(KEY + ".n") || "{}"); }catch(e){}
+
+let t = null;
+function save(){
+  clearTimeout(t);
+  t = setTimeout(function(){
+    try{
+      localStorage.setItem(KEY, JSON.stringify(saved));
+      localStorage.setItem(KEY + ".n", JSON.stringify(counts));
+    }catch(e){}
+  }, 300);
+}
+
+const m = document.getElementById("m");
+
+function blanksOf(text){ return text.split("___").length - 1; }
+
+function makeCopy(li, line, c, rerender){
+  const f = document.createElement("div");
+  f.className = "f";
+  let slot = 0;
+  line[0].split("___").forEach(function(part, k){
+    if(k > 0){
+      const id = li + "." + c + "." + (slot++);
+      const b = document.createElement("span");
+      b.className = "b";
+      b.contentEditable = "plaintext-only";
+      if(b.contentEditable !== "plaintext-only") b.contentEditable = "true";
+      b.spellcheck = false;
+      b.tabIndex = 0;
+      b.setAttribute("role", "textbox");
+      b.setAttribute("aria-label", line[1] || "fill in the blank");
+      if(saved[id]){ b.textContent = saved[id]; b.classList.add("has"); }
+      b.addEventListener("input", function(){
+        const v = b.textContent.replace(/\u00A0/g, " ");
+        if(!v.trim()) b.innerHTML = "";
+        b.classList.toggle("has", !!v.trim());
+        saved[id] = v;
+        save();
+      });
+      b.addEventListener("keydown", function(e){
+        if(e.key === "Enter"){
+          e.preventDefault();
+          const all = [].slice.call(document.querySelectorAll(".b"));
+          const j = all.indexOf(b);
+          if(all[j+1]) all[j+1].focus();
+        }
+      });
+      f.appendChild(b);
+    }
+    if(part) f.appendChild(document.createTextNode(part));
+  });
+
+  if(c > 0){
+    const x = document.createElement("button");
+    x.className = "del";
+    x.type = "button";
+    x.textContent = "\u00D7";
+    x.setAttribute("aria-label", "remove this one");
+    x.addEventListener("click", function(){
+      const n = counts[li] || 1, w = blanksOf(line[0]);
+      for(let i = c; i < n - 1; i++){
+        for(let j = 0; j < w; j++){
+          const from = li + "." + (i + 1) + "." + j;
+          if(saved[from] === undefined) delete saved[li + "." + i + "." + j];
+          else saved[li + "." + i + "." + j] = saved[from];
+        }
+      }
+      for(let j = 0; j < w; j++) delete saved[li + "." + (n - 1) + "." + j];
+      counts[li] = n - 1;
+      if(counts[li] <= 1) delete counts[li];
+      save(); rerender();
+    });
+    f.appendChild(x);
+  }
+  return f;
+}
+
+function buildRow(li, line){
+  const row = document.createElement("div");
+  row.className = "row";
+  row.dataset.li = li;
+
+  function rerender(focusCopy){
+    const fresh = buildRow(li, line);
+    row.replaceWith(fresh);
+    if(focusCopy !== undefined){
+      const b = fresh.querySelectorAll(".f")[focusCopy];
+      if(b){ const inp = b.querySelector(".b"); if(inp) inp.focus(); }
+    }
+  }
+
+  const n = blanksOf(line[0]) ? (counts[li] || 1) : 1;
+  for(let c = 0; c < n; c++) row.appendChild(makeCopy(li, line, c, rerender));
+
+  if(line[1]){
+    const h = document.createElement("div");
+    h.className = "h";
+    h.textContent = line[1];
+    row.appendChild(h);
+  }
+
+  if(blanksOf(line[0])){
+    const add = document.createElement("button");
+    add.className = "add";
+    add.type = "button";
+    add.textContent = "+ another";
+    add.addEventListener("click", function(){
+      counts[li] = (counts[li] || 1) + 1;
+      save(); rerender(counts[li] - 1);
+    });
+    row.appendChild(add);
+  }
+  return row;
+}
+
+LINES.forEach(function(line, li){
+  if(line[0] === "#"){
+    const s = document.createElement("div");
+    s.className = "sec";
+    s.textContent = line[1];
+    m.appendChild(s);
+    return;
+  }
+  m.appendChild(buildRow(li, line));
+});
+
+const first = document.querySelector(".b");
+if(first) first.focus();
+</script>
+</body>
+</html>
