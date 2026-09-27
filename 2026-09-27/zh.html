@@ -3,11 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>办事填表对话</title>
+<title>Forms &amp; Paperwork</title>
+<script id="pinyin-pro" async src="https://cdn.jsdelivr.net/npm/pinyin-pro@3.29.4/dist/index.js" integrity="sha384-rlBG6EZZxDhWy/RwkOEt1WDi5z1W+cBrFncSL8/CGhufBEfjVMB/GuZBmXseAqKU" crossorigin="anonymous"></script>
 <style>
 :root{
   --paper:#FCF8EE; --ink:#4F4545; --soft:#8E8181; --line:#E6DCCB;
   --pen:#0096BE; --pen-line:#A5DCEA; --pen-wash:#FFFABE;
+  --bad:#D23C3C; --bad-wash:#FDE3E1;
   --ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC","Helvetica Neue",Arial,sans-serif;
   
   
@@ -17,6 +19,7 @@
   :root{
     --paper:#2B2424; --ink:#EDE3D4; --soft:#9A8B8B; --line:#3D3434;
     --pen:#54C3E4; --pen-line:#37667A; --pen-wash:#4A4526;
+    --bad:#F2807A; --bad-wash:#4A2A2A;
     color-scheme:dark;
   }
 }
@@ -46,18 +49,19 @@ main{max-width:620px;margin:0 auto;padding:52px 20px 80px}
   border-top:1px solid var(--line); padding-top:15px; margin:46px 0 26px;
 }
 .sec:first-child{border-top:0;padding-top:0;margin-top:0}
-.row{margin-bottom:28px}
-.f{line-height:2.1}
+.row{margin-bottom:32px}
+.en{font-size:15px; line-height:1.45; margin-bottom:6px}
+.f{font-size:22px; line-height:1.2}
 .h{
   font-family:var(--ui); font-size:12px; color:var(--soft);
-  letter-spacing:.03em; margin-top:2px;
+  letter-spacing:.03em; margin-top:10px;
 }
 .b{
   display:inline-block; min-width:5em;
   font-weight:500; line-height:1.25;
   color:var(--pen); border-bottom:2px solid var(--pen-line); border-radius:4px;
   padding:0 .3em; margin:0 .1em;
-  vertical-align:baseline; white-space:pre-wrap; word-break:break-word;
+  vertical-align:bottom; white-space:pre-wrap; word-break:break-word;
   outline:none; border-radius:3px 3px 0 0;
   transition:background .15s,border-color .15s;
 }
@@ -65,11 +69,45 @@ main{max-width:620px;margin:0 auto;padding:52px 20px 80px}
 .b:focus{background:var(--pen-wash);border-bottom-color:var(--pen)}
 .b:empty::before{content:"\2007\2007\2007\2007"}
 .b:focus-visible{outline:none}
+.slot{
+  display:inline-flex; flex-direction:column; align-items:stretch;
+  vertical-align:bottom;
+}
+.live{
+  display:none; font-size:.66em; line-height:1.35; min-height:1.35em;
+  padding:0 .45em; color:var(--pen); white-space:nowrap; text-align:left;
+  margin-bottom:-2px; /* level with the sentence pinyin despite the blank's underline */
+}
+.slot.editing .live,.slot.empty .live{display:block}
+.slot.empty .live{opacity:.75}
+.ans{
+  color:var(--pen); font-weight:500;
+  text-decoration:underline; text-decoration-color:var(--pen-line);
+  text-decoration-thickness:2px; text-underline-offset:4px;
+}
+.slot.editing .b{letter-spacing:.35em}
+.b .c{margin:0 .1em}
+.b .c .p{color:var(--pen); opacity:1}
+.b.bad{color:var(--bad); background:var(--bad-wash); border-bottom-color:var(--bad)}
+.b.bad .c .p{color:var(--bad)}
 .f + .f{margin-top:4px}
+.c{
+  display:inline-flex; flex-direction:column; align-items:center;
+  min-width:1.5em; margin:0 .14em; vertical-align:bottom;
+}
+.c.pu{min-width:0; margin-left:0; align-items:flex-start}
+.w{display:inline-flex; align-items:flex-end; vertical-align:bottom}
+.c .p{
+  font-size:.66em; font-weight:400; line-height:1.35;
+  color:var(--ink); opacity:.78; white-space:nowrap;
+  letter-spacing:0; text-transform:none;
+}
+.c .z{line-height:1.25}
+
 .add{
   font-family:var(--ui); font-size:12px; letter-spacing:.03em;
   color:var(--soft); background:none; border:none; cursor:pointer;
-  padding:3px 0; margin-top:4px;
+  padding:3px 0; margin-top:8px;
 }
 .add:hover{color:var(--pen)}
 .del{
@@ -80,40 +118,56 @@ main{max-width:620px;margin:0 auto;padding:52px 20px 80px}
 }
 .f:hover .del{opacity:.55}
 .del:hover{opacity:1;color:var(--pen)}
+@media (max-width:420px){
+  .f{font-size:20px}
+  .b{min-width:4em}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <main id="m">
-<a class="home" href="/">← 返回首页</a>
-<img class="poster" src="poster-zh.webp" width="1254" height="1254" alt="办事填表对话">
+<a class="home" href="/">← Home</a>
+<img class="poster" src="poster-zh.webp" width="1254" height="1786" alt="Forms &amp; Paperwork">
 </main>
 <script>
+// Sentence: [汉字, 拼音, English, English hint, example [汉字, 拼音, English]]
+// The example fills the English blank of the first line, and its pinyin sits
+// over the Chinese blank so the learner can type the characters.
+// Section:  ["#", English]
+// 拼音 has one syllable per Chinese character; punctuation is added from the 汉字.
 const LINES = [
-  ["#", "说你来办什么"],
-  ["我要换___。",       "要换新的证件"],
-  ["我来取___。",       "来取的东西"],
-  ["我要复印一下___。", "要复印的东西"],
+  ["#", "Say why you're here"],
+  ["我要换___。", "Wǒ yào huàn", "I want to renew my ___.", "the ID you need to renew",
+   ["身份证", "shēn fèn zhèng", "ID card"]],
+  ["我来取___。", "Wǒ lái qǔ", "I'm here to pick up ___.", "what you came to pick up",
+   ["护照", "hù zhào", "my passport"]],
+  ["我要复印一下___。", "Wǒ yào fù yìn yí xià", "I need to make a copy of ___.", "what you need copied",
+   ["这张表", "zhè zhāng biǎo", "this form"]],
 
-  ["#", "问怎么办"],
-  ["在哪儿___？",     "要做的事"],
-  ["___是什么意思？", "看不懂的词"],
+  ["#", "Ask what to do"],
+  ["在哪儿___？", "Zài nǎr", "Where do I ___?", "what you need to do",
+   ["签字", "qiān zì", "sign"]],
+  ["___是什么意思？", "shì shén me yì si", "What does ___ mean?", "a word you don't understand",
+   ["这个词", "Zhè ge cí", "this word"]],
 
-  ["#", "说出了问题"],
-  ["我把___忘在家里了。", "没带来的东西"],
-  ["___写错了。",         "写错的地方"],
+  ["#", "Say what went wrong"],
+  ["我把___忘在家里了。", "Wǒ bǎ wàng zài jiā lǐ le", "I left my ___ at home.", "what you didn't bring",
+   ["照片", "zhào piàn", "photos"]],
+  ["___写错了。", "xiě cuò le", "The ___ is written wrong.", "what you wrote wrong",
+   ["日期", "Rì qī", "date"]],
 
-  ["#", "办事用语"],
-  ["我要填哪张表？",   ""],
-  ["需要带什么材料？", ""],
-  ["要交费吗？",       ""],
-  ["要等多久？",       ""],
-  ["去几号窗口？",     ""],
+  ["#", "At the counter"],
+  ["我要填哪张表？", "Wǒ yào tián nǎ zhāng biǎo", "Which form do I fill in?"],
+  ["需要带什么材料？", "Xū yào dài shén me cái liào", "What documents do I need to bring?"],
+  ["要交费吗？", "Yào jiāo fèi ma", "Is there a fee?"],
+  ["要等多久？", "Yào děng duō jiǔ", "How long do I have to wait?"],
+  ["去几号窗口？", "Qù jǐ hào chuāng kǒu", "Which window do I go to?"],
 
-  ["#", "排队和交表"],
-  ["我排这队对吗？",     ""],
-  ["请帮我看看这张表。", ""],
-  ["这是我的回执。",     ""]
+  ["#", "Queuing and handing in"],
+  ["我排这队对吗？", "Wǒ pái zhè duì duì ma", "Am I in the right line?"],
+  ["请帮我看看这张表。", "Qǐng bāng wǒ kàn kan zhè zhāng biǎo", "Please check this form for me."],
+  ["这是我的回执。", "Zhè shì wǒ de huí zhí", "Here is my receipt."]
 ];
 
 const KEY = "2026-09-27.zh";
@@ -136,10 +190,84 @@ const m = document.getElementById("m");
 
 function blanksOf(text){ return text.split("___").length - 1; }
 
+const HAN = /[\u3400-\u9fff]/;
+const PUNCT = {"。": ".", "？": "?", "，": ",", "！": "!"};
+
+function cell(z, p, cls){
+  const c = document.createElement("span");
+  c.className = cls ? "c " + cls : "c";
+  const a = document.createElement("span");
+  a.className = "p";
+  a.textContent = p;
+  const b = document.createElement("span");
+  b.className = "z";
+  b.textContent = z;
+  c.appendChild(a);
+  c.appendChild(b);
+  return c;
+}
+
+// Gives each Chinese character its own cell with the next syllable from q
+// above it. An erhua syllable like "nǎr" covers its character and the 儿.
+function addCells(el, text, q){
+  const chars = Array.from(text);
+  for(let i = 0; i < chars.length; i++){
+    const ch = chars[i];
+    if(HAN.test(ch) && q.length){
+      const py = q.shift();
+      let z = ch;
+      if(chars[i + 1] === "儿" && /[^e]r$/.test(py)) z += chars[++i];
+      el.appendChild(cell(z, py));
+    }else if(PUNCT[ch]){
+      // keep the mark on the same line as the character or blank before it
+      const pc = cell(ch, PUNCT[ch], "pu"), prev = el.lastChild;
+      if(prev && prev.nodeType === 1){
+        const w = document.createElement("span");
+        w.className = "w";
+        el.replaceChild(w, prev);
+        w.appendChild(prev);
+        w.appendChild(pc);
+      }else{
+        el.appendChild(pc);
+      }
+    }else{
+      el.appendChild(document.createTextNode(ch));
+    }
+  }
+}
+
+const ERHUA = "哪这那点会玩块边";
+
+// Syllables for the Chinese characters in text, in the order addCells uses
+// them. Empty strings until pinyin-pro has loaded.
+function syllables(text){
+  const chars = Array.from(text), out = [], lib = window.pinyinPro;
+  let arr = null;
+  if(lib){
+    try{ arr = lib.pinyin(text, {type: "array"}); }catch(e){}
+    if(arr && arr.length !== chars.length) arr = null;
+  }
+  for(let i = 0; i < chars.length; i++){
+    if(!HAN.test(chars[i])) continue;
+    let py = arr ? arr[i] : (lib ? lib.pinyin(chars[i]) : "");
+    if(py && chars[i + 1] === "儿" && ERHUA.indexOf(chars[i]) >= 0){ py += "r"; i++; }
+    out.push(py);
+  }
+  return out;
+}
+
+// Answers shown as cells redraw once pinyin-pro arrives.
+const redraws = [];
+const ppScript = document.getElementById("pinyin-pro");
+if(ppScript) ppScript.addEventListener("load", function(){
+  redraws.forEach(function(fn){ fn(); });
+});
+
 function makeCopy(li, line, c, rerender){
   const f = document.createElement("div");
   f.className = "f";
   let slot = 0;
+  const q = line[1].split(" ");
   line[0].split("___").forEach(function(part, k){
     if(k > 0){
       const id = li + "." + c + "." + (slot++);
@@ -150,26 +278,93 @@ function makeCopy(li, line, c, rerender){
       b.spellcheck = false;
       b.tabIndex = 0;
       b.setAttribute("role", "textbox");
-      b.setAttribute("aria-label", line[1] || "填空");
-      if(saved[id]){ b.textContent = saved[id]; b.classList.add("has"); }
-      b.addEventListener("input", function(){
+      b.setAttribute("aria-label", line[3] || "blank");
+      const wrap = document.createElement("span");
+      wrap.className = "slot";
+      const live = document.createElement("span");
+      live.className = "live";
+      live.setAttribute("aria-hidden", "true");
+      wrap.appendChild(live);
+      wrap.appendChild(b);
+
+      let text = saved[id] || "";
+      b.classList.toggle("has", !!text.trim());
+      const guide = c === 0 && line[4] ? line[4][1] : "";
+      const atStart = k === 1 && line[0].indexOf("___") === 0;
+
+      // Pinyin of what was typed; capitalised when the blank starts the sentence.
+      function typed(){
+        const q = syllables(text);
+        if(atStart && q[0]) q[0] = q[0].charAt(0).toUpperCase() + q[0].slice(1);
+        return q;
+      }
+      // Not typing: every character gets its own cell with pinyin above. An
+      // empty first-line blank shows the example's pinyin to type from.
+      function show(){
+        if(wrap.classList.contains("editing")) return;
+        b.textContent = "";
+        wrap.classList.toggle("empty", !!guide && !text.trim());
+        if(guide) live.textContent = guide;
+        if(text.trim()) addCells(b, text, typed());
+        check();
+      }
+      // First line only: red while what's typed can't lead to the example,
+      // and red after leaving unless it is the example exactly.
+      const answer = guide ? line[4][0] : "";
+      function check(){
+        if(!answer) return;
+        const t = text.replace(/\s+/g, "");
+        const bad = !!t && (wrap.classList.contains("editing") ? answer.indexOf(t) !== 0 : t !== answer);
+        b.classList.toggle("bad", bad);
+        if(bad) b.setAttribute("aria-invalid", "true");
+        else b.removeAttribute("aria-invalid");
+      }
+      function preview(){
+        live.textContent = guide || typed().join(" ") || "\u00A0";
+      }
+      show();
+      redraws.push(show);
+
+      b.addEventListener("focus", function(){
+        if(wrap.classList.contains("editing")) return;
+        wrap.classList.add("editing");
+        wrap.classList.remove("empty");
+        check();
+        b.textContent = text;
+        preview();
+        const r = document.createRange();
+        r.selectNodeContents(b);
+        r.collapse(false);
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(r);
+      });
+      b.addEventListener("blur", function(){
+        wrap.classList.remove("editing");
+        show();
+      });
+      b.addEventListener("input", function(e){
         const v = b.textContent.replace(/\u00A0/g, " ");
         if(!v.trim()) b.innerHTML = "";
         b.classList.toggle("has", !!v.trim());
+        text = v;
         saved[id] = v;
         save();
+        if(!e.isComposing){ preview(); check(); }
       });
+      b.addEventListener("compositionend", function(){ preview(); check(); });
       b.addEventListener("keydown", function(e){
         if(e.key === "Enter"){
           e.preventDefault();
           const all = [].slice.call(document.querySelectorAll(".b"));
           const j = all.indexOf(b);
           if(all[j+1]) all[j+1].focus();
+          else b.blur();
         }
       });
-      f.appendChild(b);
+      f.appendChild(wrap);
     }
-    if(part) f.appendChild(document.createTextNode(part));
+    if(part) addCells(f, part, q);
   });
 
   if(c > 0){
@@ -211,13 +406,28 @@ function buildRow(li, line){
     }
   }
 
+  const en = document.createElement("div");
+  en.className = "en";
+  if(line[4]){
+    const parts = line[2].split("___");
+    const a = document.createElement("span");
+    a.className = "ans";
+    a.textContent = line[4][2];
+    en.appendChild(document.createTextNode(parts[0]));
+    en.appendChild(a);
+    en.appendChild(document.createTextNode(parts[1]));
+  }else{
+    en.textContent = line[2];
+  }
+  row.appendChild(en);
+
   const n = blanksOf(line[0]) ? (counts[li] || 1) : 1;
   for(let c = 0; c < n; c++) row.appendChild(makeCopy(li, line, c, rerender));
 
-  if(line[1]){
+  if(line[3]){
     const h = document.createElement("div");
     h.className = "h";
-    h.textContent = line[1];
+    h.textContent = line[3];
     row.appendChild(h);
   }
 
@@ -225,7 +435,7 @@ function buildRow(li, line){
     const add = document.createElement("button");
     add.className = "add";
     add.type = "button";
-    add.textContent = "+ 再写一句";
+    add.textContent = "+ Write another";
     add.addEventListener("click", function(){
       counts[li] = (counts[li] || 1) + 1;
       save(); rerender(counts[li] - 1);
